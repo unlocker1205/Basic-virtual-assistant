@@ -68,7 +68,6 @@ def weekToday(x):
 # Phương thức lấy ra những gì trợ lý ảo nghe được
 def get_ai_listen():
     text = ai_listen()
-
     if text:
         return text.lower()
     elif text == "":
@@ -126,6 +125,94 @@ def smart_AI(text):
     translation_AI = translator.translate(ai_brain, dest='vi', src='auto') # Dịch những gì get được thành tiếng việt
     ai_speak(translation_AI.text)
 
+# Phương thức dùng cmd tìm một file cụ thể trong ổ đĩa C 
+def search_C(file_name):
+    try:
+        out = os.popen('dir /a-d /b "c:\\' + file_name +'" /s').read() # Chạy cmd trả về kết quả dưới dạng string
+        temp = out.splitlines()
+        ai_speak("Ứng dụng của bạn đang được mở!")
+        os.startfile(temp[0]) # Mở file, vì chỉ có 1 file duy nhất nên là [0]
+    except:
+        ai_speak("Xin lỗi, tôi không tìm thấy File!")
+
+
+
+def get_file_name(disk, file_name):
+    number = ['một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín', 'mười'] #Dùng cho trường hợp tìm kiếm được nhiều hơn 1 file
+    count = 0; # Đếm số file
+    a = ""
+    out = os.popen('dir /a-d /b "' + disk + ':\\' + file_name + '*" /s').read().strip() # Chạy lệnh cmd
+    temp = out.splitlines()
+    for x in range(len(temp)): # Chạy vòng lặp for từ 0 -> chiều dài mảng temp
+        file_name = temp[x].split('\\') 
+        file_name = file_name[len(file_name) - 1] # Lấy ra phần tử cuối cũng của mảng file_name
+        count += 1
+        print(str(count) + ". " + file_name) # In ra danh sách các file tìm được
+    if count > 1:
+        ai_speak("Bạn muốn mở file thứ mấy?")
+        time.sleep(1)
+        text = get_ai_listen()
+        for x in range(len(number)): # Chạy vòng for kiểm tra người dùng có nói đúng thứ tự hiện có hay không
+            if number[x] in text:
+                a = number.index(number[x])
+        if a == "":
+            ai_speak('Không thể mở file bạn yêu cầu!')
+        elif a != "":
+            ai_speak("File của bạn đang được mở")
+            os.startfile(temp[a])
+    elif count == 1:
+        ai_speak("File của bạn đang được mở")
+        os.startfile(temp[0])
+    if len(temp)  == 0:
+        ai_speak('File bạn muốn tìm kiếm không có trong ổ đĩa này, hãy thử lại ở ổ đĩa khác!')
+        number_disk()
+
+def number_disk():
+    out = os.popen('wmic logicaldisk get name').read().strip() # Chạy cmd lấy ra danh sách ổ đĩa
+    a = "".join(out.split()) # Xóa tất cả các khoảng trắng trong chuỗi
+    output = a.split("Name")[1] 
+    result = output.split(":")
+    count = 1 # Đếm số ổ đĩa
+    count2 = 0; # Dùng để kiểm tra người dùng có yêu cầu mở đúng ổ đĩa có trong danh sách hay không
+    for x in range(len(result) - 2):
+        count += 1
+    ai_speak("Máy hiện tại có " + str(count) + " ổ đĩa ")
+    for x in range(len(result) - 1):
+        ai_speak(str(result[x]))
+    ai_speak("Bạn muốn tìm kiếm ở ổ đĩa nào?")
+    text = get_ai_listen()
+    for x in range(len(result) - 1):
+        if str(result[x]) not in text.upper():
+            count2 += 1
+    if count2 == len(result) - 1 and text != "":
+        ai_speak('Xin lỗi, ổ đĩa bạn yêu cầu không tồn tại')
+        number_disk()
+    elif count2 != len(result) - 1:
+        ai_speak("Bạn muốn tìm kiếm file tên gì?")
+        text2 = get_ai_listen()
+        if text2 != "":
+            if "c" in text:
+                get_file_name('c', text2)
+            elif 'd' in text:
+                get_file_name('d', text2)
+            elif 'e' in text:
+                get_file_name('e', text2)
+
+
+# Phương thức mở dứng dụng
+def open_application():
+    ai_speak("Bạn muốn mở ứng dụng gì?")
+    text = get_ai_listen()
+    if "soạn thảo văn bản" in text:
+        search_C("WINWORD.exe")
+    elif "excel" in text:
+        search_C("excel.exe")
+    elif "powerpoint" in text:
+        search_C("POWERPNT.EXE")
+    elif "trình duyệt" in text:
+        search_C("msedge.exe")
+
+
 # Phương thức hoạt động chính
 while True :
     you = get_ai_listen()
@@ -154,17 +241,22 @@ while True :
         translation = translator.translate(ai_brain, dest='vi', src='auto')
         ai_speak(translation.text)
         count = 0
-    elif "mở" in you:
-        if "google và tìm kiếm":
-            google_search(you)
-            count = 0
-        else:
-            open_brower(you)
-            count = 0
+    # elif "mở trình duyệt" in you or "mở trình duyệt và tìm kiếm" in you:
+    #     open_brower(you)
+    #     count = 0
+    elif "mở google và tìm kiếm" in you:
+        google_search(you)
+        count = 0
+    elif "mở ứng dụng" in you:
+        open_application()
+        count = 0;
     elif "youtube" in you:
         youtube_search()
         count = 0
-    elif "tạm biệt" in you or "bye" in you or "tắt" in you:
+    elif "tìm kiếm trong máy" in you or "tìm kiếm" == you:
+        number_disk()
+        count = 0;
+    elif "tạm biệt" in you or "bye" in you or "tắt" in you or "cảm ơn" in you:
         ai_brain = "Tạm biệt"
         ai_speak(ai_brain)
         break

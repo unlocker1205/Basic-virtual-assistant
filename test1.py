@@ -15,6 +15,31 @@ from youtube_search import YoutubeSearch # Thư viện hỗ trợ tìm kiếm tr
 import time # Xử lý các tác vụ liên quan đến thời gian
 import requests # Hỗ trợ gửi yêu cầu HTTP
 from bs4 import BeautifulSoup # Hỗ trợ xử lý dữ liệu dạng html (Phân tích tài liệu html)
+import subprocess
+import sys
+from pathlib import Path
+import array as arr 
 
-regex = re.search('mở (.+)', "abc bng mở agw")
-print(regex.group(1))
+
+
+file_name = "abcd"
+disk = 'e'
+count = 0;
+
+out = os.popen('dir /a-d /b "' + disk + ':\\' + file_name + '*" /s').read().strip()
+temp = out.splitlines()
+for x in range(len(temp)):
+    file_name = temp[x].split('\\')
+    file_name = file_name[len(file_name) - 1]
+    count += 1
+    print(str(count) + ". " + file_name)
+print(len(temp))
+os.startfile(temp[0])
+
+# text = 'file thứ nhất'
+# n = ['một', 'nhất']
+# number = [n, 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín', 'mười']
+# for x in range(len(number)):
+#     if number[x] in text:
+#         a = number.index(number[x])
+# print(a)  
